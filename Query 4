@@ -1,0 +1,39 @@
+select p.id, p.gtin, p.description as Descricao,
+(CASE `p`.`status`
+            WHEN 0 THEN 'Aguardando cadastro de dados'
+            WHEN 1 THEN 'Produto criado'
+            WHEN 2 THEN 'Aguardando imagens'
+            WHEN 3 THEN 'Aguardando Qualidade'
+            WHEN 4 THEN 'Aguardando Aprovação'
+            WHEN 5 THEN 'Aguardando publicação'
+            WHEN 6 THEN 'Publicado'
+            WHEN 7 THEN 'Rejeitado pelo QA'
+            WHEN 8 THEN 'Rejeitado pelo Fabricante'
+            WHEN 9 THEN 'Aguardando revisão'
+            WHEN 10 THEN 'Rejeitado'
+            WHEN 11 THEN 'Aguardando medição'
+            WHEN 12 THEN 'Aguardando pesagem'
+            WHEN 13 THEN 'Aguardando pesagem e medição'
+            WHEN 14 THEN 'Inativado'
+            WHEN 15 THEN 'Aguardando Amostra'
+            WHEN 16 THEN 'Removido'
+            WHEN 17 THEN 'Aprovado QA'
+            WHEN 18 THEN 'Aguardando Dados Logisticos'
+            WHEN 19 THEN 'Aguardando Fotografia'
+            WHEN 20 THEN 'Cadastro Básico'
+            WHEN 21 THEN 'Cadastro Completo'
+            WHEN 23 THEN 'Agendado para publicação'
+            WHEN 25 THEN 'Aguardando dados'
+            WHEN 26 THEN 'Sem Contrato'
+        END) AS `Status`,
+        pc.name as Categoria,
+        f.name as Fabricante,
+    (SELECT valor.value FROM product_attribute_value valor LEFT JOIN product_view_attribute pva ON pva.id = valor.product_view_attribute_id
+     WHERE valor.product_id = p.id AND pva.attribute_id = 309 limit 1) AS 'Registro ANVISA',
+    (SELECT valor.value FROM product_attribute_value valor LEFT JOIN product_view_attribute pva ON pva.id = valor.product_view_attribute_id
+     WHERE valor.product_id = p.id AND pva.attribute_id = 1010 limit 1) AS 'Validade Registro ANVISA',
+    (SELECT valor.value FROM product_attribute_value valor LEFT JOIN product_view_attribute pva ON pva.id = valor.product_view_attribute_id
+     WHERE valor.product_id = p.id AND pva.attribute_id = 1016 limit 1) AS 'Processo ANVISA'
+from product p 
+left join product_category pc on pc.id = p.product_category_id
+inner join account f on f.id = p.company_id
