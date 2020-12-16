@@ -1,0 +1,22 @@
+SELECT
+	empresa_acesso.name AS 'Varejo', address.city as 'Cidade do Varejo', address.state as 'UF do Varejo', log_acesso.date_created AS 'Data', 
+	    month(log_acesso.date_created) as "Mês",
+	produto.gtin as 'EAN', produto.description as 'Descrição', product_category.name as 'Categoria', if(produto.basic_data = true, 'Básico', 'Completo') as 'Tipo de Cadastro'
+FROM
+	product_access_log log_acesso
+LEFT JOIN product produto ON
+	produto.id = log_acesso.product_id
+LEFT JOIN account fornecedor ON
+	fornecedor.id = produto.company_id
+LEFT JOIN account empresa_acesso ON
+	empresa_acesso.id = log_acesso.account_id
+left join address on 
+    empresa_acesso.address_id = address.id
+left join product_category on produto.product_category_id = product_category.id
+WHERE
+	type = 'API' [[
+	AND (fornecedor.casual_name LIKE "%" {{Fornecedor}}"%"
+	OR fornecedor.name LIKE "%" {{Fornecedor}}"%")]] 
+	AND log_acesso.date_created BETWEEN {{Intervalo_Inicial}} AND {{Intervalo_Final}}
+	[[and product_category.name like concat('%', {{categoria}},'%')]]
+order by Varejo
