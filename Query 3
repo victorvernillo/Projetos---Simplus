@@ -1,0 +1,41 @@
+select produto.gtin AS 'EAN', produto.short_description AS 'Descrição do Produto',
+send_os_eans.os AS 'OS',
+product_category.name AS 'Categoria',
+produto.manufacturer_code as 'Cód. do Fornecedor',
+(case produto.status
+            when 0 then 'Aguardando cadastro de dados'
+            when 1 then 'Produto criado'
+            when 2 then 'Aguardando imagens'
+            when 3 then 'Aguardando Qualidade'
+            when 4 then 'Aguardando Aprovação'
+            when 5 then 'Aguardando publicação'
+            when 6 then 'Publicado'
+            when 7 then 'Rejeitado pelo QA'
+            when 8 then 'Rejeitado pelo Fabricante'
+            when 9 then 'Aguardando revisão'
+            when 10 then 'Rejeitado'
+            when 11 then 'Aguardando medição'
+            when 12 then 'Aguardando pesagem'
+            when 13 then 'Aguardando pesagem e medição'
+            when 14 then 'Inativado'
+            when 15 then 'Aguardando Amostra Inativado'
+            when 16 then 'Excluido'
+            when 17 then 'Aprovado por QA'
+            when 18 then 'Aguardando Dados Logisticos'
+            when 19 then 'Aguardando Fotografia'
+            when 20 then 'Cadastro Básico'
+            when 21 then 'Cadastro Completo'
+            when 23 then 'Agendado para publicação' end)  AS Status,
+substring_index(substring_index(historico.description, ']', 1),'[', -1) as 'Atributo', 
+historico.description as 'Descrição da Divergência', 
+historico.date_created as 'Data', 
+usuario.name as 'Usuário'
+from product_history as historico 
+inner join product as produto on produto.id = historico.product_id 
+left join account as account on account.id = produto.company_id 
+left join user as usuario on usuario.id = historico.user_id
+left join product_category on product_category.id = produto.product_category_id
+left join send_os_eans on produto.gtin = send_os_eans.ean
+where historico.status = 'PRODUCT_DIVERGENCE_CREATED' AND {{FORNECEDOR}}
+AND historico.date_created BETWEEN DATE_FORMAT(STR_TO_DATE({{initial_date}}, '%d/%m/%Y'), '%Y-%m-%d')  and DATE_FORMAT(STR_TO_DATE({{final_date}}, '%d/%m/%Y'), '%Y-%m-%d')
+ORDER BY DATA DESC;
