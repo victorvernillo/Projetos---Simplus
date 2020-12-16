@@ -1,0 +1,12 @@
+select product.gtin as 'GTIN', product.description as 'DESCRIÇÃO', account.name as 'VAREJO', manufacturer.name as 'FORNECEDOR', 
+        commercial_data.commercial_data_type as 'TIPO'
+from commercial_data_value 
+left join logistic_composition_group_data on commercial_data_value.logistic_composition_group_data_id = logistic_composition_group_data.id 
+left join log_composition_level_group_data on commercial_data_value.log_composition_level_group_data_id = log_composition_level_group_data.id 
+left join log_composition_level on log_composition_level.id = log_composition_level_group_data.log_composition_level_id 
+left join log_composition on log_composition.id = log_composition_level.log_composition_id
+left join product on product.id = log_composition.product_id 
+left join account on account.id = commercial_data_value.account_subscriber_id 
+left join account as manufacturer on manufacturer.id = product.company_id 
+left join commercial_data on commercial_data.id = commercial_data_value.commercial_data_id
+[[where manufacturer.name like concat('%', {{Fornecedor}}, '%')]]
